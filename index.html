@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+    html,body,#atb-extension-overlay {
+        width: 100%;
+        height: 100%;
+    }
+    </style>
+</head>
+<body>
+    <div id="atb-extension-overlay">
+
+    </div>
+<script>
+!function() {
+    window.extensionsuccess = true;
+    if (document.getElementById("confetti")) {
+        return
+    }
+    var e = document.getElementById("atb-extension-overlay");
+    if (!e) {
+        return
+    }
+    var j = document.createElement("canvas");
+    j.id = "confetti";
+    j.className = "atb-extension-confetti";
+    e.appendChild(j);
+    var f = window.devicePixelRatio
+      , s = Math.PI
+      , C = Math.sqrt
+      , B = Math.round
+      , c = Math.random
+      , g = Math.cos
+      , a = Math.sin
+      , u = window.requestAnimationFrame
+      , m = window.cancelAnimationFrame || window.cancelRequestAnimationFrame
+      , k = Date.now || function() {
+        return new Date().getTime()
+    }
+    ;
+    (function(D) {
+        var F = k();
+        function G(I) {
+            var K = k();
+            var H = Math.max(0, 16 - (K - F));
+            var J = setTimeout(I, H);
+            F = K;
+            return J
+        }
+        var E = D.cancelAnimationFrame || D.webkitCancelAnimationFrame || D.clearTimeout;
+        u = D.requestAnimationFrame || D.webkitRequestAnimationFrame || G;
+        m = function(H) {
+            E.call(D, H)
+        }
+    }(window));
+    var v = 50
+      , b = (1 / v)
+      , h = 11
+      , i = 30
+      , t = 8
+      , y = 8
+      , p = 95
+      , o = s / 180
+      , w = 180 / s
+      , n = [["#de5833", "#7C250C"], ["#5b9e4d", "#173910"], ["#4495d4", "#214D6C"], ["#F1A031", "#895918"]];
+    function x(E, D) {
+        this.x = E,
+        this.y = D;
+        this.Length = function() {
+            return C(this.SqrLength())
+        }
+        ;
+        this.SqrLength = function() {
+            return this.x * this.x + this.y * this.y
+        }
+        ;
+        this.Add = function(F) {
+            this.x += F.x;
+            this.y += F.y
+        }
+        ;
+        this.Sub = function(F) {
+            this.x -= F.x;
+            this.y -= F.y
+        }
+        ;
+        this.Div = function(F) {
+            this.x /= F;
+            this.y /= F
+        }
+        ;
+        this.Mul = function(F) {
+            this.x *= F;
+            this.y *= F
+        }
+        ;
+        this.Normalize = function() {
+            var G = this.SqrLength();
+            if (G != 0) {
+                var F = 1 / C(G);
+                this.x *= F;
+                this.y *= F
+            }
+        }
+        ;
+        this.Normalized = function() {
+            var G = this.SqrLength();
+            if (G != 0) {
+                var F = 1 / C(G);
+                return new x(this.x * F,this.y * F)
+            }
+            return new x(0,0)
+        }
+    }
+    x.Lerp = function(E, D, F) {
+        return new x((D.x - E.x) * F + E.x,(D.y - E.y) * F + E.y)
+    }
+    ;
+    x.Distance = function(E, D) {
+        return C(x.SqrDistance(E, D))
+    }
+    ;
+    x.SqrDistance = function(F, E) {
+        var D = F.x - E.x;
+        var G = F.y - E.y;
+        return (D * D + G * G + z * z)
+    }
+    ;
+    x.Scale = function(E, D) {
+        return new x(E.x * D.x,E.y * D.y)
+    }
+    ;
+    x.Min = function(E, D) {
+        return new x(Math.min(E.x, D.x),Math.min(E.y, D.y))
+    }
+    ;
+    x.Max = function(E, D) {
+        return new x(Math.max(E.x, D.x),Math.max(E.y, D.y))
+    }
+    ;
+    x.ClampMagnitude = function(F, D) {
+        var E = F.Normalized;
+        return new x(E.x * D,E.y * D)
+    }
+    ;
+    x.Sub = function(E, D) {
+        return new x(E.x - D.x,E.y - D.y,E.z - D.z)
+    }
+    ;
+    function r(G, E, D, F) {
+        this.position = new x(G,E);
+        this.mass = D;
+        this.drag = F;
+        this.force = new x(0,0);
+        this.velocity = new x(0,0);
+        this.AddForce = function(H) {
+            this.force.Add(H)
+        }
+        ;
+        this.Integrate = function(H) {
+            var I = this.CurrentForce(this.position);
+            I.Div(this.mass);
+            var J = new x(this.velocity.x,this.velocity.y);
+            J.Mul(H);
+            this.position.Add(J);
+            I.Mul(H);
+            this.velocity.Add(I);
+            this.force = new x(0,0)
+        }
+        ;
+        this.CurrentForce = function(H, L) {
+            var I = new x(this.force.x,this.force.y);
+            var K = this.velocity.Length();
+            var J = new x(this.velocity.x,this.velocity.y);
+            J.Mul(this.drag * this.mass * K);
+            I.Sub(J);
+            return I
+        }
+    }
+    function A(G, F) {
+        this.pos = new x(G,F);
+        this.rotationSpeed = (c() * 600 + 800);
+        this.angle = o * c() * 360;
+        this.rotation = o * c() * 360;
+        this.cosA = 1;
+        this.size = 5;
+        this.oscillationSpeed = (c() * 1.5 + 0.5);
+        this.xSpeed = 40;
+        this.ySpeed = (c() * 60 + 50);
+        this.corners = new Array();
+        this.time = c();
+        var I = B(c() * (n.length - 1));
+        this.frontColor = n[I][0];
+        this.backColor = n[I][1];
+        for (var H = 0; H < 4; H++) {
+            var E = g(this.angle + o * (H * 90 + 45));
+            var D = a(this.angle + o * (H * 90 + 45));
+            this.corners[H] = new x(E,D)
+        }
+        this.Update = function(J) {
+            this.time += J;
+            this.rotation += this.rotationSpeed * J;
+            this.cosA = g(o * this.rotation);
+            this.pos.x += g(this.time * this.oscillationSpeed) * this.xSpeed * J;
+            this.pos.y += this.ySpeed * J;
+            if (this.pos.y > A.bounds.y) {
+                this.pos.x = c() * A.bounds.x;
+                this.pos.y = 0
+            }
+        }
+        ;
+        this.Draw = function(K) {
+            if (this.cosA > 0) {
+                K.fillStyle = this.frontColor
+            } else {
+                K.fillStyle = this.backColor
+            }
+            K.beginPath();
+            K.moveTo((this.pos.x + this.corners[0].x * this.size) * f, (this.pos.y + this.corners[0].y * this.size * this.cosA) * f);
+            for (var J = 1; J < 4; J++) {
+                K.lineTo((this.pos.x + this.corners[J].x * this.size) * f, (this.pos.y + this.corners[J].y * this.size * this.cosA) * f)
+            }
+            K.closePath();
+            K.fill()
+        }
+    }
+    A.bounds = new x(0,0);
+    function d(K, I, L, G, J, H, E, D) {
+        this.particleDist = G;
+        this.particleCount = L;
+        this.particleMass = E;
+        this.particleDrag = D;
+        this.particles = new Array();
+        var M = B(c() * (n.length - 1));
+        this.frontColor = n[M][0];
+        this.backColor = n[M][1];
+        this.xOff = (g(o * H) * J);
+        this.yOff = (a(o * H) * J);
+        this.position = new x(K,I);
+        this.prevPosition = new x(K,I);
+        this.velocityInherit = (c() * 2 + 4);
+        this.time = c() * 100;
+        this.oscillationSpeed = (c() * 2 + 2);
+        this.oscillationDistance = (c() * 40 + 40);
+        this.ySpeed = (c() * 40 + 80);
+        for (var F = 0; F < this.particleCount; F++) {
+            this.particles[F] = new r(K,I - F * this.particleDist,this.particleMass,this.particleDrag)
+        }
+        this.Update = function(O) {
+            var R = 0;
+            this.time += O * this.oscillationSpeed;
+            this.position.y += this.ySpeed * O;
+            this.position.x += g(this.time) * this.oscillationDistance * O;
+            this.particles[0].position = this.position;
+            var P = this.prevPosition.x - this.position.x;
+            var N = this.prevPosition.y - this.position.y;
+            var T = C(P * P + N * N);
+            this.prevPosition = new x(this.position.x,this.position.y);
+            for (R = 1; R < this.particleCount; R++) {
+                var S = x.Sub(this.particles[R - 1].position, this.particles[R].position);
+                S.Normalize();
+                S.Mul((T / O) * this.velocityInherit);
+                this.particles[R].AddForce(S)
+            }
+            for (R = 1; R < this.particleCount; R++) {
+                this.particles[R].Integrate(O)
+            }
+            for (R = 1; R < this.particleCount; R++) {
+                var Q = new x(this.particles[R].position.x,this.particles[R].position.y);
+                Q.Sub(this.particles[R - 1].position);
+                Q.Normalize();
+                Q.Mul(this.particleDist);
+                Q.Add(this.particles[R - 1].position);
+                this.particles[R].position = Q
+            }
+            if (this.position.y > d.bounds.y + this.particleDist * this.particleCount) {
+                this.Reset()
+            }
+        }
+        ;
+        this.Reset = function() {
+            this.position.y = -c() * d.bounds.y;
+            this.position.x = c() * d.bounds.x;
+            this.prevPosition = new x(this.position.x,this.position.y);
+            this.velocityInherit = c() * 2 + 4;
+            this.time = c() * 100;
+            this.oscillationSpeed = c() * 2 + 1.5;
+            this.oscillationDistance = (c() * 40 + 40);
+            this.ySpeed = c() * 40 + 80;
+            var O = B(c() * (n.length - 1));
+            this.frontColor = n[O][0];
+            this.backColor = n[O][1];
+            this.particles = new Array();
+            for (var N = 0; N < this.particleCount; N++) {
+                this.particles[N] = new r(this.position.x,this.position.y - N * this.particleDist,this.particleMass,this.particleDrag)
+            }
+        }
+        ;
+        this.Draw = function(P) {
+            for (var N = 0; N < this.particleCount - 1; N++) {
+                var Q = new x(this.particles[N].position.x + this.xOff,this.particles[N].position.y + this.yOff);
+                var O = new x(this.particles[N + 1].position.x + this.xOff,this.particles[N + 1].position.y + this.yOff);
+                if (this.Side(this.particles[N].position.x, this.particles[N].position.y, this.particles[N + 1].position.x, this.particles[N + 1].position.y, O.x, O.y) < 0) {
+                    P.fillStyle = this.frontColor;
+                    P.strokeStyle = this.frontColor
+                } else {
+                    P.fillStyle = this.backColor;
+                    P.strokeStyle = this.backColor
+                }
+                if (N == 0) {
+                    P.beginPath();
+                    P.moveTo(this.particles[N].position.x * f, this.particles[N].position.y * f);
+                    P.lineTo(this.particles[N + 1].position.x * f, this.particles[N + 1].position.y * f);
+                    P.lineTo(((this.particles[N + 1].position.x + O.x) * 0.5) * f, ((this.particles[N + 1].position.y + O.y) * 0.5) * f);
+                    P.closePath();
+                    P.stroke();
+                    P.fill();
+                    P.beginPath();
+                    P.moveTo(O.x * f, O.y * f);
+                    P.lineTo(Q.x * f, Q.y * f);
+                    P.lineTo(((this.particles[N + 1].position.x + O.x) * 0.5) * f, ((this.particles[N + 1].position.y + O.y) * 0.5) * f);
+                    P.closePath();
+                    P.stroke();
+                    P.fill()
+                } else {
+                    if (N == this.particleCount - 2) {
+                        P.beginPath();
+                        P.moveTo(this.particles[N].position.x * f, this.particles[N].position.y * f);
+                        P.lineTo(this.particles[N + 1].position.x * f, this.particles[N + 1].position.y * f);
+                        P.lineTo(((this.particles[N].position.x + Q.x) * 0.5) * f, ((this.particles[N].position.y + Q.y) * 0.5) * f);
+                        P.closePath();
+                        P.stroke();
+                        P.fill();
+                        P.beginPath();
+                        P.moveTo(O.x * f, O.y * f);
+                        P.lineTo(Q.x * f, Q.y * f);
+                        P.lineTo(((this.particles[N].position.x + Q.x) * 0.5) * f, ((this.particles[N].position.y + Q.y) * 0.5) * f);
+                        P.closePath();
+                        P.stroke();
+                        P.fill()
+                    } else {
+                        P.beginPath();
+                        P.moveTo(this.particles[N].position.x * f, this.particles[N].position.y * f);
+                        P.lineTo(this.particles[N + 1].position.x * f, this.particles[N + 1].position.y * f);
+                        P.lineTo(O.x * f, O.y * f);
+                        P.lineTo(Q.x * f, Q.y * f);
+                        P.closePath();
+                        P.stroke();
+                        P.fill()
+                    }
+                }
+            }
+        }
+        ;
+        this.Side = function(Q, S, O, R, N, P) {
+            return ((Q - O) * (P - R) - (S - R) * (N - O))
+        }
+    }
+    d.bounds = new x(0,0);
+    q = {};
+    q.Context = function(D) {
+        var K = 0;
+        var G = document.getElementById(D);
+        var J = G.parentNode;
+        var I = J.offsetWidth;
+        var M = J.offsetHeight;
+        G.width = I * f;
+        G.height = M * f;
+        var E = G.getContext("2d");
+        var H = null;
+        var L = new Array();
+        d.bounds = new x(I,M);
+        for (K = 0; K < h; K++) {
+            L[K] = new d(c() * I,-c() * M * 2,i,t,y,45,1,0.05)
+        }
+        var F = new Array();
+        A.bounds = new x(I,M);
+        for (K = 0; K < p; K++) {
+            F[K] = new A(c() * I,c() * M)
+        }
+        this.resize = function() {
+            I = J.offsetWidth;
+            M = J.offsetHeight;
+            G.width = I * f;
+            G.height = M * f;
+            A.bounds = new x(I,M);
+            d.bounds = new x(I,M)
+        }
+        ;
+        this.start = function() {
+            this.stop();
+            var N = this;
+            this.update()
+        }
+        ;
+        this.stop = function() {
+            m(this.interval)
+        }
+        ;
+        this.update = function() {
+            var N = 0;
+            E.clearRect(0, 0, G.width, G.height);
+            for (N = 0; N < p; N++) {
+                F[N].Update(b);
+                F[N].Draw(E)
+            }
+            for (N = 0; N < h; N++) {
+                L[N].Update(b);
+                L[N].Draw(E)
+            }
+            this.interval = u(function() {
+                q.update()
+            })
+        }
+    }
+    ;
+    var q = new q.Context("confetti");
+    q.start();
+    window.addEventListener("resize", function(D) {
+        q.resize()
+    });
+    var l = document.getElementById("atb-extension-overlay__success");
+    if (l) {
+        l.className += " is-showing"
+    }
+}();
+</script>
+</body>
+</html>
